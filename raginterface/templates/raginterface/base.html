@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'raginterface/style.css' %}">
+        <title>CHANGE</title>
+    </head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="{% url 'home' %}" class="logo">FRAG App</a>
+        <div class="nav-links">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'search' %}">Search</a>
+            <a href="{% url 'chat' %}">Chat</a>
+        </div>
+    </nav>
+
+
+
+   
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="{{ footer_class }}">
+        &copy; 2024 FRAG. All rights reserved.
+    </footer>
+
+</body>
+</html>
