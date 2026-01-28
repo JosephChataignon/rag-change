@@ -23,7 +23,7 @@ rag_prompt: |
   INSTRUCTIONS:
   Answer the users QUESTION using the DOCUMENTS text above.
   Keep your answer ground in the facts of the DOCUMENT.
-  If the DOCUMENT doesn't contain the facts to answer the QUESTION return NO Answer found
+  If the DOCUMENT doesn't contain the facts to answer the QUESTION return No Answer Found
 
 # Vector Database configuration for retrieval
 embedding_model: "sentence-transformers/all-MiniLM-L6-v2"

@@ -76,65 +76,12 @@ def chat_api(request):
         prompt = prompt_template.format(data=retrieval_results, query=query)
         # call LLM service
         result = llm_service.generate_response(prompt)
-        
-        return JsonResponse(result)
+        docs_json = json.dumps(retrieval_results.get('documents', []))
+        response_text = f"{result}<|DOCS_JSON|>{docs_json}"
+
+        return HttpResponse(response_text, content_type='text/plain')
         
     except Exception as e:
         logger.exception(f"Chat API error: {e}")
         return JsonResponse({'error': str(e)}, status=500)
 
-
-@require_POST  
-def chat_stream_api(request):
-    logger.info(f"Chat Stream API accessed with request: {request}")
-    try:
-        query = request.POST.get('query', '').strip()
-        if not query:
-            return JsonResponse({'error': 'Query is required'}, status=400)
-        
-        # Test LLM service availability
-        if not isinstance(llm_service.test(), str):
-            logger.error("Error: LLM service is not available.")
-            return JsonResponse({'error': 'LLM service is not available'}, status=500)
-        
-        n_results = config.get('n_results')
-        
-        def generate_stream_response(query, n_results):
-            try:
-                # Search for relevant documents
-                search_data = vector_retriever.retrieve(query, n_results)
-                # Construct prompt for LLM   
-                prompt=search_data['formatted_data']
-                chunk_count = 0
-                for chunk in llm_service.stream_response(prompt):
-                    yield chunk
-                    chunk_count += 1
-                    if chunk_count % 50 == 0: # Force garbage collection every 50 chunks
-                        gc.collect()
-                
-                # After streaming is complete, send document metadata
-                docs_json = json.dumps(search_data['documents'])
-                yield f"<|DOCS_JSON|>{docs_json}"
-                
-            except Exception as e:
-                logger.exception("Error during streaming response generation")
-                yield f"\n\nError during response generation: {str(e)[:100]}..."
-                yield f"<|DOCS_JSON|>{docs_json if 'docs_json' in locals() else '[]'}"
-            finally:
-                # Final cleanup
-                gc.collect()
-                
-        def response_generator():
-            for chunk in generate_stream_response(query, n_results):
-                yield chunk
-            
-        response = StreamingHttpResponse(
-            response_generator(),
-            content_type='text/plain'
-        )
-        logger.info(f"Streaming response initiated: {response}")
-        return response
-
-    except Exception as e:
-        logger.exception(f"Chat Stream API error: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
