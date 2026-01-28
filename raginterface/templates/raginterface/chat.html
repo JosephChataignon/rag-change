@@ -78,85 +78,50 @@
         formData.append('csrfmiddlewaretoken', 
             document.querySelector('[name=csrfmiddlewaretoken]').value);
     
-        // Stream the response from the server
-        fetch("{% url 'chat_stream_api' %}", {
+        // Fetch the response from the server (non-streaming)
+        fetch("{% url 'chat_api' %}", {
             method: 'POST',
             body: formData
         })
-        .then(response => {
-            if (!response.body) {
-                throw new Error("ReadableStream not yet supported in this browser.");
+        .then(response => response.text())
+        .then(responseText => {
+            const marker = '<|DOCS_JSON|>';
+            const markerIndex = responseText.indexOf(marker);
+            let answerText = responseText;
+            let docsText = '';
+
+            if (markerIndex !== -1) {
+                answerText = responseText.slice(0, markerIndex);
+                docsText = responseText.slice(markerIndex + marker.length);
             }
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder('utf-8');
-            
-            let buffer = '';
-            
-            function readChunk() {
-                return reader.read().then(({ done, value }) => {
-                    if (done) {
-                        // Finished reading
-                        return;
-                    }
-                    // Decode chunk
-                    const chunkText = decoder.decode(value, {stream: true});
-                    
-                    // We want to watch for the final docs marker: <|DOCS_JSON|>
-                    buffer += chunkText;
-                    
-                    // If we find the marker, we split it out
-                    const markerIndex = buffer.indexOf('<|DOCS_JSON|>');
-                    if (markerIndex !== -1) {
-                        // Everything up to the marker is normal LLM text
-                        const normalText = buffer.slice(0, markerIndex);
-    
-                        // Everything after the marker is doc JSON
-                        const docsText = buffer.slice(markerIndex + '<|DOCS_JSON|>'.length);
-                        
-                        // Append all normal text to the Bot response
-                        botResponseElem.textContent += normalText;
-                        chatBox.scrollTop = chatBox.scrollHeight;
-    
-                        // Attempt to parse the doc JSON
-                        let docsData = [];
-                        try {
-                            docsData = JSON.parse(docsText);
-                        } catch (e) {
-                            console.error('Error parsing docs JSON:', e);
-                        }
-                        // Now we fill the docsContainer with the doc data
-                        if (docsData.length > 0) {
-                            docsToggleLink.style.display = 'inline-block'; // show the link
-                            let html = '';
-                            docsData.forEach((doc, idx) => {
-                                html += `
-                                    <div class="single-doc">
-                                        <p><strong>Document ${idx + 1}</strong></p>
-                                        <p><strong>File Name:</strong> ${doc.file_name}</p>
-                                        <p><strong>Chunk ID:</strong> ${doc.chunk_id}</p>
-                                        <pre>${doc.content}</pre>
-                                    </div>
-                                    <hr/>
-                                `;
-                            });
-                            docsContainer.innerHTML = html;
-                        }
-    
-                        // Done with streaming. We'll stop reading further
-                        // so we don't re-append text, etc.
-                        return;
-                    } else {
-                        // No marker, so everything is normal text so far
-                        botResponseElem.textContent += chunkText;
-                        chatBox.scrollTop = chatBox.scrollHeight;
-                    }
-    
-                    // Keep reading ...
-                    return readChunk();
-                });
+
+            botResponseElem.textContent = answerText;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            if (docsText) {
+                let docsData = [];
+                try {
+                    docsData = JSON.parse(docsText);
+                } catch (e) {
+                    console.error('Error parsing docs JSON:', e);
+                }
+                if (docsData.length > 0) {
+                    docsToggleLink.style.display = 'inline-block';
+                    let html = '';
+                    docsData.forEach((doc, idx) => {
+                        html += `
+                            <div class="single-doc">
+                                <p><strong>Document ${idx + 1}</strong></p>
+                                <p><strong>File Name:</strong> ${doc.file_name}</p>
+                                <p><strong>Chunk ID:</strong> ${doc.chunk_id}</p>
+                                <pre>${doc.content}</pre>
+                            </div>
+                            <hr/>
+                        `;
+                    });
+                    docsContainer.innerHTML = html;
+                }
             }
-    
-            return readChunk();
         })
         .catch(err => {
             console.error("Error fetching streaming response:", err);
