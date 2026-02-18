@@ -22,6 +22,7 @@
         event.preventDefault(); 
     
         const queryInput = document.getElementById('query');
+        const submitButton = document.querySelector('#chat-form button');
         const userQuery = queryInput.value.trim();
         if (!userQuery) return;
     
@@ -41,8 +42,12 @@
         botMsgDiv.className = 'bot-message';
     
         const botResponseElem = document.createElement('span');
+        const botLoader = document.createElement('span');
+        botLoader.className = 'spinner chat-response-loader';
+        botLoader.setAttribute('aria-hidden', 'true');
         botMsgDiv.innerHTML = `<p><strong>Bot:</strong> </p>`;
         botMsgDiv.querySelector('p').appendChild(botResponseElem);
+        botMsgDiv.querySelector('p').appendChild(botLoader);
         
         // Create a container for the 'Documents used...' link & content
         // We'll hide it until we have doc data
@@ -77,8 +82,12 @@
         formData.append('query', userQuery);
         formData.append('csrfmiddlewaretoken', 
             document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        botLoader.style.display = 'inline-block';
+        queryInput.disabled = true;
+        submitButton.disabled = true;
     
-        // Fetch the response from the server (non-streaming)
+        // Fetch the response from the server
         fetch("{% url 'chat_api' %}", {
             method: 'POST',
             body: formData
@@ -124,7 +133,13 @@
             }
         })
         .catch(err => {
-            console.error("Error fetching streaming response:", err);
+            console.error("Error fetching response:", err);
+        })
+        .finally(() => {
+            botLoader.style.display = 'none';
+            queryInput.disabled = false;
+            submitButton.disabled = false;
+            queryInput.focus();
         });
     });
     </script>

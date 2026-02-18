@@ -338,6 +338,10 @@ body, html {
     height: 50px;
 }
 
+.chat-form textarea:disabled {
+    cursor: not-allowed;
+}
+
 .chat-form button {
     width: auto;
     height: 50px;
@@ -355,17 +359,30 @@ body, html {
     background: #6b7efe;
 }
 
+.chat-form button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
 .spinner {
     margin: 0 auto;
     border: 6px solid #f3f3f3; 
     border-top: 6px solid #4e90fe; 
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     animation: spin 1s linear infinite;
-    display: inline-block;
+    display: none;
     margin-top: 10px;
   }
+
+.chat-response-loader {
+    width: 18px;
+    height: 18px;
+    border-width: 3px;
+    margin: 0 0 0 8px;
+    vertical-align: middle;
+}
   
   @keyframes spin {
     0% { transform: rotate(0deg); }

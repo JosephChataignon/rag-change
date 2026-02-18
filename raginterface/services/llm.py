@@ -38,23 +38,6 @@ class LLMService:
             logger.exception("LLM test failed")
             return None
 
-    async def atest(self):
-        """Asynchronous test of LLM service availability."""
-        try:
-            response = await self.llm.acompletion(
-                model=self.model_name,
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": "Hello, how are you?"}
-                ],
-                stream=False,
-            )
-            logger.info(f"LLM async test response: {response.choices[0].message.content}\nContinuing")
-            return response.choices[0].message.content
-        except Exception as e:
-            logger.exception("LLM async test failed")
-            return None
-
     def generate_response(self, prompt):
         """Synchronous response generation."""
         try:
@@ -70,60 +53,4 @@ class LLMService:
         except Exception as e:
             logger.exception("Error during response generation")
             raise RuntimeError(f"An error occurred during response generation: {e}")
-    
-    async def agenerate_response(self, prompt):
-        """Asynchronous response generation."""
-        try:
-            response = await self.llm.acompletion(
-                model=self.model_name,
-                messages=[
-                    {"role": "system", "content": "You are a RAG system."},
-                    {"role": "user", "content": prompt}
-                ],
-                stream=False,
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            logger.exception("Error during async response generation")
-            raise RuntimeError(f"An error occurred during async response generation: {e}")
-    
-    def stream_response(self, prompt):
-        """Synchronous streaming response generation."""
-        try:
-            response_generator = self.llm.completion(
-                model=self.model_name,
-                messages=[
-                    {"role": "system", "content": "You are a RAG system."},
-                    {"role": "user", "content": prompt}
-                ],
-                stream=True,
-            )
-            for chunk in response_generator:
-                yield chunk.choices[0].delta.content
-        except Exception as e:
-            logger.exception("Error during streaming response generation")
-            raise RuntimeError(f"An error occurred during response generation: {e}")
-    
-    async def astream_response(self, prompt):
-        """Asynchronous streaming response generation."""
-        try:
-            response_generator = await self.llm.acompletion(
-                model=self.model_name,
-                messages=[
-                    {"role": "system", "content": "You are a RAG system."},
-                    {"role": "user", "content": prompt}
-                ],
-                stream=True,
-            )
-            # Return an async generator
-            return self._async_chunk_generator(response_generator)
-        except Exception as e:
-            logger.exception("Error during async streaming response generation")
-            raise RuntimeError(f"An error occurred during async response generation: {e}")
-    
-    async def _async_chunk_generator(self, response_generator):
-        """Helper async generator to yield chunks from the response."""
-        async for chunk in response_generator:
-            yield chunk.choices[0].delta.content
-    
 
