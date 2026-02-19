@@ -16,6 +16,7 @@ These instructions are given for an install on Ubuntu. Other linux distributions
 Clone the project `git clone https://github.com/JosephChataignon/rag-change`
 Create a virtual environment `python -m venv venv`, and enter it `source venv/bin/activate`
 Install python modules `pip install -r requirements.txt`
+Note: you might still need to install additional package for LLM access. depending on the LLM provider you want to use.
 
 
 ### Settings
@@ -33,11 +34,18 @@ apply migrations with `python manage.py migrate`
 Run tests with `python3 manage.py test`
 
 
-### Run server locally
+### Data ingestion
+You need to ingest data before running the server.
+`python3 
+
+
+### Run the interface server
+
+#### Run server locally
 For local testing, run server with `python3 manage.py runserver`
 
 
-### Run server in production
+#### Run server in production
 For production, change the .env file:
 - set DJANGO_DEBUG=False
 - configure allowed hosts in the environment variable DJANGO_ALLOWED_HOSTS (comma separated)
@@ -50,6 +58,7 @@ In your server config, add a location block to serve static files. For example, 
     }
 
 
+#### Example settings for production
 You need a webserver and a WSGI to serve the application. Here are example files for a case using Nginx as 
 webserver and Gunicorn as WSGI.
 

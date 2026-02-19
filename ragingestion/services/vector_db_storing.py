@@ -5,8 +5,8 @@ from tqdm import tqdm
 from sentence_transformers import SentenceTransformer
 
 from ragchange.config.loader import config
-from data_collection import DataCollector
-from chunking import Chunker
+from .data_collection import DataCollector
+from .chunking import Chunker
 
 logger = logging.getLogger('ragingestion')
 
