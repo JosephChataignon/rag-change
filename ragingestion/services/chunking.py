@@ -14,12 +14,11 @@ class Chunker:
 
     def __init__(self):
         self.chunking_strategy = config.get('chunking_strategy')
-        self.chunking_strategy_type = config.get('chunking_strategy')['type']
     
-    def chunk(self, text: str) -> list[str]:
-        if self.chunking_strategy_type == 'sentences':
-            chunk_size = config.get('chunk_size')
-            overlap_size = config.get('overlap_size')
+    def chunk(self, text):
+        if self.chunking_strategy['type'] == 'sentences':
+            chunk_size = self.chunking_strategy['chunk_size']
+            overlap_size = self.chunking_strategy['overlap_size']
 
             sentences = self._split_text_into_sentences(text)
             chunks = self._chunk_sentences(sentences, chunk_size, overlap_size)
@@ -28,7 +27,7 @@ class Chunker:
             raise ValueError(f"Unsupported chunking strategy: {self.chunking_strategy}")
         
         
-    def _split_text_into_sentences(self, text: str) -> list[str]:
+    def _split_text_into_sentences(self, text):
         """
         Splits the given text into a list of sentences using NLTK's sentence tokenizer.
         """
@@ -36,20 +35,10 @@ class Chunker:
         return sentences
 
 
-    def _chunk_sentences(self, sentences: list[str], chunk_size: int, overlap_size: int) -> list[str]:
+    def _chunk_sentences(self, sentences, chunk_size, overlap_size):
         """
         Groups a list of sentences into overlapping chunks.
-
-        Args:
-            sentences (list[str]): A list of sentences to be chunked.
-            chunk_size (int): The number of sentences in each chunk.
-            overlap_size (int): The number of sentences to overlap between consecutive chunks.
-
-        Returns:
-            list[str]: A list of text chunks with the specified overlap.
-            
-        Raises:
-            ValueError: If overlap_size is greater than or equal to chunk_size.
+        Returns a list of text chunks
         """
         if overlap_size > chunk_size/2:
             raise ValueError(f"overlap_size {overlap_size} must be smaller than halfchunk_size {chunk_size}.")

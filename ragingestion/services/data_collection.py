@@ -36,7 +36,7 @@ class DataCollector:
         self.file_paths = file_paths
 
     
-    def read_file(self, file_path: str) -> str:
+    def read_file(self, file_path):
         if file_path.endswith('.txt'):
             return self.read_text_file(file_path)
         elif file_path.endswith('.pdf'):
@@ -44,8 +44,8 @@ class DataCollector:
         else:
             raise ValueError(f"Unsupported file type: {file_path}")
     
-
-    def read_text_file(self, file_path: str) -> str:
+    
+    def read_text_file(self, file_path):
         """
         Reads the content of a text file and returns it as a single string.
 
@@ -61,7 +61,7 @@ class DataCollector:
         return content
 
 
-    def read_pdf_file(self, file_path: str) -> str:
+    def read_pdf_file(self, file_path):
         """
         Reads the content of a PDF file and returns it as a single string.
         
