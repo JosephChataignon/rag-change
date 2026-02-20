@@ -49,6 +49,8 @@ class Ingestor:
                         metadatas=[{"file_path": relative_path, "chunk_id": i}],
                         ids=[chunk_id]
                     )
+                del chunks
+                del text
             except Exception as e:
                 logger.error(f"Failed to process file {file_path}: {e}")
                 error_count += 1

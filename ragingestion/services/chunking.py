@@ -36,7 +36,17 @@ class Chunker:
         Splits the given text into a list of sentences using NLTK's sentence tokenizer.
         """
         sentences = nltk.sent_tokenize(text)
-        return sentences
+        max_sentence_chars = 150
+        capped_sentences = []
+        for sentence in sentences:
+            if len(sentence) <= max_sentence_chars:
+                capped_sentences.append(sentence)
+            else:
+                capped_sentences.extend(
+                    [sentence[i:i+max_sentence_chars] for i in range(0, len(sentence), max_sentence_chars)]
+                )
+        return capped_sentences
+
 
 
     def _chunk_sentences(self, sentences, chunk_size, overlap_size):
