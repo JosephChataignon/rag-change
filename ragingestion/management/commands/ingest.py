@@ -5,6 +5,7 @@ from ragingestion.services.vector_db_storing import Ingestor
 
 class Command(BaseCommand):
     help = "Ingest data into the vector database."
+    requires_system_checks = []
 
     def handle(self, *args, **options):
         self.stdout.write("Starting ingest...")

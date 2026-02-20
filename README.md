@@ -28,15 +28,16 @@ Settings you write in local.yaml will override settings from defaults.yaml
 Create directories logs and data (they're used but in .gitignore so it's safer to create them first) `mkdir logs data`
 
 
+### Data ingestion
+You need to ingest data before running the server.
+Make sure your settings in ragchange/config/local.yaml (sections Vector Database configuration and Data ingestion) are right before running the command.
+`python3 manage.py ingest` (TODO: test command)
+
+
 ### Set up Django
 create admin with `python manage.py createsuperuser`
 apply migrations with `python manage.py migrate`
 Run tests with `python3 manage.py test`
-
-
-### Data ingestion
-You need to ingest data before running the server.
-`python3 
 
 
 ### Run the interface server

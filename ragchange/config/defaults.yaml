@@ -1,13 +1,13 @@
 --- 
 # Default settings for the RAG-CHANGE application
 
-# LLM configuration (enter your own in config/local.yaml)
+## LLM configuration (enter your own in config/local.yaml)
 llm_provider: "ollama"
 llm_api_key: "your-api-key"
 llm_api_base: "http://localhost:11434" # leave empty if not needed (most providers)
 llm_model: "mistral-small-3.2"
 
-# RAG settings
+## RAG settings
 record_data: true
 rag_system_prompt: "You are a helpful assistant that provides accurate and concise information based on the provided context."
 rag_prompt: |
@@ -25,13 +25,13 @@ rag_prompt: |
   Keep your answer ground in the facts of the DOCUMENT.
   If the DOCUMENT doesn't contain the facts to answer the QUESTION return No Answer Found
 
-# Vector Database configuration for retrieval
+## Vector Database configuration
 embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
 vector_db_path: "./data/vector_db"
 vector_db_collection: "documents"
 n_results: 12
 
-# Data ingestion settings
+## Data ingestion
 data_source_path: "./data/source_documents"
 index_file_types:
   - "txt"
