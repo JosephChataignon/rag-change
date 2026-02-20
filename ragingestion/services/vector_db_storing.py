@@ -28,20 +28,25 @@ class Ingestor:
         logger.info(f"Initialized Ingestor - DB at {vector_db_path} - collection '{collection_name}' - embedding model '{embedding_model}'")
         
     def ingest(self):
+        logger.info("Collecting file paths...")
         self.data_collector.collect_file_paths()
+        logger.info(f"Done, {len(self.data_collector.file_paths)} files found.")
         for file_path in tqdm(self.data_collector.file_paths, desc="Ingesting files"):
             error_count = 0
             try:
-                file_name = os.path.basename(file_path)
+                relative_path = os.path.relpath(
+                    file_path,
+                    self.data_collector.data_source_path,
+                )
                 text = self.data_collector.read_file(file_path)
                 chunks = self.chunker.chunk(text)
                 for i, chunk_text in enumerate(chunks):
                     chunk_embedding = self.embedding_model.encode(chunk_text)
-                    chunk_id = f"{file_name}_chunk_{i}"
+                    chunk_id = f"{relative_path}_chunk_{i}"
                     self.collection.add(
                         documents=[chunk_text],
                         embeddings=[chunk_embedding],
-                        metadatas=[{"file_name": file_name, "chunk_id": i}],
+                        metadatas=[{"file_path": relative_path, "chunk_id": i}],
                         ids=[chunk_id]
                     )
             except Exception as e:

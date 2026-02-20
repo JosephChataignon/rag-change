@@ -1,6 +1,9 @@
+import logging
 import nltk
 
 from ragchange.config.loader import config
+
+logger = logging.getLogger('ragingestion')
 
 # Download necessary NLTK resources if not present
 nltk.download('punkt', quiet=True)
@@ -14,6 +17,7 @@ class Chunker:
 
     def __init__(self):
         self.chunking_strategy = config.get('chunking_strategy')
+        logger.info(f"Initialized Chunker with strategy: {self.chunking_strategy}")
     
     def chunk(self, text):
         if self.chunking_strategy['type'] == 'sentences':

@@ -17,14 +17,7 @@ class DataCollector:
     def collect_file_paths(self):
         """
         Retrieves a list of paths to all files with specified extensions in the given root directory and 
-        its subdirectories. The paths get stored in a variable.
-
-        Args:
-            root_dir (str): The root directory to search for files.
-            file_extensions (list[str]): A list of file extensions to retrieve. For example, ["txt", "pdf"]
-
-        Returns:
-            List[str]: A list of file paths to all matching files found within the root directory and its subdirectories.
+        its subdirectories. 
         """
         file_paths = []
         
@@ -48,12 +41,6 @@ class DataCollector:
     def read_text_file(self, file_path):
         """
         Reads the content of a text file and returns it as a single string.
-
-        Args:
-            file_path (str): The path to the .txt file to read.
-
-        Returns:
-            str: The content of the file as a single string.
         """
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
@@ -64,12 +51,6 @@ class DataCollector:
     def read_pdf_file(self, file_path):
         """
         Reads the content of a PDF file and returns it as a single string.
-        
-        Args:
-            file_path (str): The path to the PDF file to read.
-        
-        Returns:
-            str: The content of the PDF as a single string.
         """
         text_content = []
         
