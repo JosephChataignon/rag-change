@@ -31,8 +31,8 @@ class Ingestor:
         logger.info("Collecting file paths...")
         self.data_collector.collect_file_paths()
         logger.info(f"Done, {len(self.data_collector.file_paths)} files found.")
+        error_count = 0
         for file_path in tqdm(self.data_collector.file_paths, desc="Ingesting files"):
-            error_count = 0
             try:
                 relative_path = os.path.relpath(
                     file_path,
