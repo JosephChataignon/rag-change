@@ -67,7 +67,7 @@ Nginx config file (usually in `/etc/nginx/sites-available/rag-change`):
 ```
 server {
     listen 80;
-    server_name example-url.com; # don't forget to authorize thsi URL in DJANGO_ALLOWED_HOSTS
+    server_name example-url.com; # don't forget to authorize this URL in DJANGO_ALLOWED_HOSTS
     location /static/ {
         alias /home/user/rag-change/staticfiles/;
     }
