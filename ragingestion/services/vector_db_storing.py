@@ -32,7 +32,8 @@ class Ingestor:
         self.data_collector.collect_file_paths()
         logger.info(f"Done, {len(self.data_collector.file_paths)} files found.")
         error_count = 0
-        for file_path in tqdm(self.data_collector.file_paths, desc="Ingesting files"):
+        progress_scale = [int((i+1)*len(self.data_collector.file_paths)/100) for i in range(100)]
+        for idx, file_path in enumerate(tqdm(self.data_collector.file_paths, desc="Ingesting files")):
             try:
                 relative_path = os.path.relpath(
                     file_path,
@@ -55,11 +56,13 @@ class Ingestor:
                 logger.error(f"Failed to process file {file_path}: {e}")
                 error_count += 1
                 continue
+            if idx in progress_scale:
+                logger.info(f"Ingested {idx} files ({progress_scale.index(idx)+1}%)...")
         error_percent = (error_count / len(self.data_collector.file_paths))
         message = f"Ingest completed with {error_count} errors out of {len(self.data_collector.file_paths)} files ({error_percent:.2%})"
-        if error_percent < 0.05:
+        if error_percent < 0.01:
             logger.info(message)
-        elif error_percent < 0.2:
+        elif error_percent < 0.1:
             logger.warning(message)
         else:
             logger.error(message)

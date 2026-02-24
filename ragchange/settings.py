@@ -95,7 +95,6 @@ LOGGING = {
         },
         'raginterface_file': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
             'filename': os.path.join(LOG_DIR, 'raginterface.log'),
             'formatter': 'verbose',
             'class': 'logging.handlers.TimedRotatingFileHandler',
@@ -104,7 +103,6 @@ LOGGING = {
         },
         'ragingestion_file': {
             'level': 'DEBUG',
-            'class': 'logging.FileHandler',
             'filename': os.path.join(LOG_DIR, 'ragingestion.log'),
             'formatter': 'verbose',
             'class': 'logging.handlers.TimedRotatingFileHandler',
