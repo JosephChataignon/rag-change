@@ -31,12 +31,12 @@ Create directories logs and data (they're used but in .gitignore so it's safer t
 ### Data ingestion
 You need to ingest data before running the server.
 Make sure your settings in ragchange/config/local.yaml (sections Vector Database configuration and Data ingestion) are right before running the command.
-`python3 manage.py ingest` (TODO: test command)
+`python3 manage.py ingest`
 
 
 ### Set up Django
-create admin with `python manage.py createsuperuser`
-apply migrations with `python manage.py migrate`
+Apply migrations with `python manage.py migrate`
+Create admin with `python manage.py createsuperuser`
 Run tests with `python3 manage.py test`
 
 
@@ -55,7 +55,7 @@ For production, change the .env file:
 Collect static files with `python manage.py collectstatic`
 In your server config, add a location block to serve static files. For example, in nginx:
     location /static/ { # This parameter should match STATIC_URL from settings.py
-        alias /home/change/rag-change/staticfiles/; # This parameter should match STATIC_ROOT from settings.py
+        alias /home/user/rag-change/staticfiles/; # This parameter should match STATIC_ROOT from settings.py
     }
 
 
@@ -80,7 +80,7 @@ server {
 }
 ```
 
-For Gunicorn, first make sure gunicorn is installed `pip install gunicorn`.
+For Gunicorn, first make sure gunicorn is installed in the virtual environment `pip install gunicorn`.
 Create a new config file `/etc/systemd/system/gunicorn.service` for the Gunicorn daemon,
 and paste this inside (adapt parameters to your own machine).
 ```
@@ -93,7 +93,7 @@ User=your-username
 Group=www-data
 WorkingDirectory=/home/user/rag-change
 Environment="PYTHONPATH=/home/user/rag-change"
-ExecStart=/home/user/rag-change/venv/bin/gunicorn --workers 5 --bind 127.0.0.1:8000 --timeout 360 --chdir django-server ragchange.wsgi:application
+ExecStart=/home/user/rag-change/venv/bin/gunicorn --workers 4 --bind 127.0.0.1:8000 --timeout 360 ragchange.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
