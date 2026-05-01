@@ -35,6 +35,8 @@ def search_api(request):
         if not query or not n_results or n_results <= 0:
             return JsonResponse({'error': 'Requires query and n_results>0'}, status=400)
         
+        logger.info(f"Processing search query: '{query}'")
+        
         # Use the service to search documents
         search_data = vector_retriever.retrieve(query, n_results)
         
@@ -68,6 +70,8 @@ def chat_api(request):
         
         if not query or not n_results:
             return JsonResponse({'error': 'Requires query and n_result'}, status=400)
+            
+        logger.info(f"Processing chat query: '{query}'")
         
         # vector search
         retrieval_results = vector_retriever.retrieve(query)
