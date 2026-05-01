@@ -326,7 +326,7 @@ body, html {
     bottom: 0;
 }
 
-.chat-form input {
+.chat-form input[type="text"] {
     flex: 1;
     border: 1px solid #021330;
     border-radius: 5px;
@@ -338,7 +338,7 @@ body, html {
     height: 50px;
 }
 
-.chat-form input:disabled {
+.chat-form input[type="text"]:disabled {
     cursor: not-allowed;
 }
 
