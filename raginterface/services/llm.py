@@ -38,15 +38,12 @@ class LLMService:
             logger.exception("LLM test failed")
             return None
 
-    def generate_response(self, prompt):
+    def generate_response(self, messages):
         """Synchronous response generation."""
         try:
             response = self.llm.completion(
                 model=self.model_name,
-                messages=[
-                    {"role": "system", "content": "You are a RAG system."},
-                    {"role": "user", "content": prompt}
-                ],
+                messages=messages,
                 stream=False,
             )
             return response.choices[0].message.content

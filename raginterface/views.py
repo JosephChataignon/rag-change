@@ -2,9 +2,11 @@ import json, logging, gc
 from django.shortcuts import render
 from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
+from django.db import transaction
 
 from ragchange.config.loader import config
 
+from raginterface.models import ChatLog
 from raginterface.services.llm import LLMService
 from raginterface.services.vector_search import ChromaRetriever
 
@@ -24,6 +26,33 @@ def search(request):
 def chat(request):
     logger.info(f"Chat interface accessed with request: {request}")
     return render(request, 'raginterface/chat.html')
+
+
+def _get_chat_log(request):
+    if not request.session.session_key:
+        request.session.save()
+    session_key = request.session.session_key
+
+    chat_log, _ = ChatLog.objects.get_or_create(session_key=session_key)
+    chat_log.content.setdefault("turns", [])
+    return chat_log
+
+
+def _build_messages_from_transcript(chat_log, retrieval_results, query):
+    system_prompt = config.get('rag_system_prompt')
+    messages = [{"role": "system", "content": system_prompt}]
+
+    for turn in chat_log.content.get("turns"):
+        user_text = turn.get("query")
+        assistant_text = turn.get("response")
+        if user_text: messages.append({"role": "user", "content": user_text})
+        if assistant_text: messages.append({"role": "assistant", "content": assistant_text})
+
+    prompt_template = config.get('rag_prompt')
+    prompt = prompt_template.format(data=retrieval_results, query=query)
+    messages.append({"role": "user", "content": prompt})
+    return messages
+
 
 @require_POST  
 def search_api(request):
@@ -72,17 +101,29 @@ def chat_api(request):
             return JsonResponse({'error': 'Requires query and n_result'}, status=400)
             
         logger.info(f"Processing chat query: '{query}'")
+        chat_log = _get_chat_log(request)
         
         # vector search
         retrieval_results = vector_retriever.retrieve(query)
         # prompt construction
-        prompt_template = config.get('rag_prompt')
-        prompt = prompt_template.format(data=retrieval_results, query=query)
+        messages = _build_messages_from_transcript(chat_log, retrieval_results, query)
         # call LLM service
-        result = llm_service.generate_response(prompt)
+        result = llm_service.generate_response(messages)
+
+        chat_log.content["turns"].append({
+            "query": query,
+            "response": result,
+            "llm_model": config.get('llm_model'),
+            "embedding_model": config.get('embedding_model'),
+            "vector_db": config.get('vector_db_path'),
+            "n_results": n_results
+        })
+        
+        with transaction.atomic():
+            chat_log.save(update_fields=["content"])
+
         docs_json = json.dumps(retrieval_results.get('documents', []))
         response_text = f"{result}<|DOCS_JSON|>{docs_json}"
-
         return HttpResponse(response_text, content_type='text/plain')
         
     except Exception as e:
