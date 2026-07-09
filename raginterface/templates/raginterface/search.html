@@ -66,7 +66,7 @@ document.getElementById('search-form').addEventListener('submit', function(event
     
     // Show loading, hide previous results
     loadingIndicator.style.display = 'block';
-    searchButton.disabled = true; // Disable the button to prevent multiple clicks
+    searchButton.disabled = true; // Disable the button during loading to prevent multiple clicks
     resultsContainer.style.display = 'none';
     noResultsDiv.style.display = 'none';
     
@@ -94,10 +94,10 @@ document.getElementById('search-form').addEventListener('submit', function(event
             data.documents.forEach(result => {
                 html += `
                     <div class="result-item">
-                        <p><strong>Content:</strong> ${result.content}</p>
-                        <p><strong>File Name:</strong> ${result.file_name}</p>
-                        <p><strong>Chunk ID:</strong> ${result.chunk_id}</p>
-                        <p><strong>Distance:</strong> ${result.distance}</p>
+                        <strong>Content:</strong> ${result.content}<br>
+                        <strong>File Name:</strong> ${result.file_name}<br>
+                        <strong>Chunk ID:</strong> ${result.chunk_id}<br>
+                        <strong>Distance from query:</strong> ${result.distance}
                     </div>
                 `;
             });

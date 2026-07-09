@@ -37,6 +37,15 @@ def _get_chat_log(request):
     chat_log.content.setdefault("turns", [])
     return chat_log
 
+def _format_results_for_prompt(retrieval_results):
+    """Formats the retrieval results from a dict into a string, including some metadata."""
+    formatted_data = f"Number of documents: {len(retrieval_results)}\n"
+    for doc in retrieval_results:
+        formatted_data += f"File Name: {doc['file_name']}\n"
+        formatted_data += f"Content:\n{doc['content']}\n"
+        formatted_data += "-" * 80 + "\n"
+
+    return formatted_data
 
 def _build_messages_from_transcript(chat_log, retrieval_results, query):
     system_prompt = config.get('rag_system_prompt')
@@ -49,9 +58,14 @@ def _build_messages_from_transcript(chat_log, retrieval_results, query):
         if assistant_text: messages.append({"role": "assistant", "content": assistant_text})
 
     prompt_template = config.get('rag_prompt')
-    prompt = prompt_template.format(data=retrieval_results, query=query)
+    formatted_results = _format_results_for_prompt(retrieval_results)
+    prompt = prompt_template.format(data=formatted_results, query=query)
     messages.append({"role": "user", "content": prompt})
     return messages
+
+def _augment_query(query):
+    return [query,'test lol']
+    # TODO
 
 
 @require_POST  
@@ -63,18 +77,20 @@ def search_api(request):
         
         if not query or not n_results or n_results <= 0:
             return JsonResponse({'error': 'Requires query and n_results>0'}, status=400)
+        logger.info(f"Processing search query: '{query}'\n\tNumber of results requested: {n_results}")
         
-        logger.info(f"Processing search query: '{query}'")
-        
+        query_augmentation = False #TODO: when to turn it on ?
         # Use the service to search documents
-        search_data = vector_retriever.retrieve(query, n_results)
+        if query_augmentation:
+            queries = _augment_query(query)
+            retrieval_results = vector_retriever.retrieve(queries, n_results)
+        else:
+            retrieval_results = vector_retriever.retrieve([query], n_results)
         
         # Format response for the frontend
         response_data = {
             'query': query,
-            'documents': search_data['documents'],
-            'total_results': len(search_data['documents']),
-            'formatted_data': search_data['formatted_data']
+            'documents': retrieval_results
         }
         
         return JsonResponse(response_data)
@@ -99,14 +115,15 @@ def chat_api(request):
         
         if not query or not n_results:
             return JsonResponse({'error': 'Requires query and n_result'}, status=400)
-            
-        logger.info(f"Processing chat query: '{query}'")
+        logger.info(f"Processing chat query: '{query}'\n\tNumber of results requested: {n_results}")
+        
         chat_log = _get_chat_log(request)
         
         # vector search
-        retrieval_results = vector_retriever.retrieve(query)
+        queries = _augment_query(query)
+        search_data = vector_retriever.retrieve(queries, n_results)
         # prompt construction
-        messages = _build_messages_from_transcript(chat_log, retrieval_results, query)
+        messages = _build_messages_from_transcript(chat_log, search_data, query)
         # call LLM service
         result = llm_service.generate_response(messages)
 
@@ -122,7 +139,7 @@ def chat_api(request):
         with transaction.atomic():
             chat_log.save(update_fields=["content"])
 
-        docs_json = json.dumps(retrieval_results.get('documents', []))
+        docs_json = json.dumps(search_data)
         response_text = f"{result}<|DOCS_JSON|>{docs_json}"
         return HttpResponse(response_text, content_type='text/plain')
         
