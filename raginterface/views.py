@@ -1,4 +1,4 @@
-import json, logging, gc
+import json, logging, re, gc
 from django.shortcuts import render
 from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
@@ -64,8 +64,19 @@ def _build_messages_from_transcript(chat_log, retrieval_results, query):
     return messages
 
 def _augment_query(query):
-    return [query,'test lol']
-    # TODO
+    system_prompt = "You are a reformulation tool in a search engine. You will be given a user question and you will formulate search queries that will help find relevant information. The theme of the questions and documents is Education Science. Generated search queries should be varied, should use Education Science terminology, and should be relevant to the original question."
+    query_prompt = f"Generate 3 search queries in English and 3 in German. Use the following output format: \n {{ 'queries': ['query1', 'query2', 'query3', 'query4', 'query5', 'query6'] }} \n User original question: '{query}'"
+    messages = [{"role": "system", "content": system_prompt},
+                {"role": "user", "content": query_prompt}]
+    result = llm_service.generate_response(messages)
+    try:
+        m = re.search(r"\{[^}]*['\"]?queries['\"]?\s*:\s*\[.*?\][^}]*\}", result, re.S)
+        queries = json.loads(m.group(0).replace("\'", "\""))['queries']
+    except (json.JSONDecodeError, AttributeError):
+        logger.error(f"Failed to parse augmented queries from LLM response: {result}")
+        raise ValueError("Failed to parse augmented queries from LLM response.")
+    logger.info(f"Augmented query '{query}' into {queries}")
+    return queries
 
 
 @require_POST  
@@ -81,11 +92,8 @@ def search_api(request):
         
         query_augmentation = False #TODO: when to turn it on ?
         # Use the service to search documents
-        if query_augmentation:
-            queries = _augment_query(query)
-            retrieval_results = vector_retriever.retrieve(queries, n_results)
-        else:
-            retrieval_results = vector_retriever.retrieve([query], n_results)
+        queries = _augment_query(query) if query_augmentation else [query]
+        retrieval_results = vector_retriever.retrieve(queries, n_results)
         
         # Format response for the frontend
         response_data = {
@@ -127,6 +135,7 @@ def chat_api(request):
         # call LLM service
         result = llm_service.generate_response(messages)
 
+        # save chat
         chat_log.content["turns"].append({
             "query": query,
             "response": result,
@@ -135,10 +144,10 @@ def chat_api(request):
             "vector_db": config.get('vector_db_path'),
             "n_results": n_results
         })
-        
         with transaction.atomic():
             chat_log.save(update_fields=["content"])
 
+        # return response
         docs_json = json.dumps(search_data)
         response_text = f"{result}<|DOCS_JSON|>{docs_json}"
         return HttpResponse(response_text, content_type='text/plain')
