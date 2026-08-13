@@ -65,13 +65,13 @@ def _build_messages_from_transcript(chat_log, retrieval_results, query):
 
 def _augment_query(query):
     system_prompt = "You are a reformulation tool in a search engine. You will be given a user question and you will formulate search queries that will help find relevant information. The theme of the questions and documents is Education Science. Generated search queries should be varied, should use Education Science terminology, and should be relevant to the original question."
-    query_prompt = f"Generate 3 search queries in English and 3 in German. Use the following output format: \n {{ 'queries': ['query1', 'query2', 'query3', 'query4', 'query5', 'query6'] }} \n User original question: '{query}'"
+    query_prompt = f"Generate 3 search queries in English and 3 in German. Use the following json output format: \n {{ \"queries\": [\"query1\", \"query2\", \"query3\", \"query4\", \"query5\", \"query6\"] }} \n User original question: '{query}'"
     messages = [{"role": "system", "content": system_prompt},
                 {"role": "user", "content": query_prompt}]
     result = llm_service.generate_response(messages)
     try:
         m = re.search(r"\{[^}]*['\"]?queries['\"]?\s*:\s*\[.*?\][^}]*\}", result, re.S)
-        queries = json.loads(m.group(0).replace("\'", "\""))['queries']
+        queries = json.loads(m.group(0))['queries'] #TODO: force json formatting on LLM ?
     except (json.JSONDecodeError, AttributeError):
         logger.error(f"Failed to parse augmented queries from LLM response: {result}")
         raise ValueError("Failed to parse augmented queries from LLM response.")
