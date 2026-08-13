@@ -49,12 +49,14 @@ class ChromaRetriever:
                 for d_i, doc_id in enumerate(ids):
                     if doc_id not in ids_dedup:
                         ids_dedup.add(doc_id)
+                        # for backward compatibility: it's file_path in new versions but still file_name in some old versions
+                        file_name_var = 'file_name' if 'file_name' in results['metadatas'][q_i][d_i] else 'file_path'
                         documents.append({
                             'id': doc_id,
                             'content': results['documents'][q_i][d_i],
                             'distance': results['distances'][q_i][d_i],
                             'chunk_id': results['metadatas'][q_i][d_i]['chunk_id'],
-                            'file_name': results['metadatas'][q_i][d_i].get('file_path', results['metadatas'][q_i][d_i]['file_name'] ) #file_name in old versions
+                            'file_name': results['metadatas'][q_i][d_i][file_name_var]
                         })
                     else:
                         n_duplicates += 1
