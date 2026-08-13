@@ -62,6 +62,7 @@ class ChromaRetriever:
             return documents
         except Exception as e:
             logger.exception("Error during reformatting of search results (probably wrong response format from Chroma)")
+            logger.exception(f"Raw results: {results}")
             raise Exception(f"An error occurred while reformatting search results: {e}")
 
     
