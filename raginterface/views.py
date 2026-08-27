@@ -64,7 +64,7 @@ def _build_messages_from_transcript(chat_log, retrieval_results, query):
     return messages
 
 def _augment_query(query):
-    system_prompt = "You are a reformulation tool in a search engine. You will be given a user question and you will formulate search queries that will help find relevant information. The theme of the questions and documents is Education Science. Generated search queries should be varied, should use Education Science terminology, and should be relevant to the original question."
+    system_prompt = "You are a reformulation tool in a search engine. You will be given a user question and you will formulate search queries that will help find relevant information. The theme of the questions and documents is Education Science. Documents are mostly academic sources, and users are typically teachers who have surface knowledge of Education Science, but are not experts. Generated search queries should be varied, should use Education Science terminology, and should be relevant to the original question."
     query_prompt = f"Generate 3 search queries in English and 3 in German. Use the following json output format: \n {{ \"queries\": [\"query1\", \"query2\", \"query3\", \"query4\", \"query5\", \"query6\"] }} \n User original question: '{query}'"
     messages = [{"role": "system", "content": system_prompt},
                 {"role": "user", "content": query_prompt}]
