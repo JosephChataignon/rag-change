@@ -39,6 +39,22 @@ Apply migrations with `python manage.py migrate`
 Create admin with `python manage.py createsuperuser`
 Run tests with `python3 manage.py test`
 
+#### Search API
+
+The search API accepts JSON POST requests without a browser CSRF token:
+
+```python
+import requests
+
+response = requests.post(
+    "https://change.dh.unibe.ch/api/search/",
+    json={"query": "foobar", "n_results": 5},
+    timeout=120,
+)
+response.raise_for_status()
+print(response.json())
+```
+
 
 ### Run the interface server
 
@@ -109,4 +125,3 @@ You can check that Gunicorn and Nginx are running correctly:
 sudo systemctl status gunicorn
 sudo systemctl status nginx
 ```
-

@@ -2,6 +2,7 @@ import json, logging, re, gc
 from django.shortcuts import render
 from django.http import HttpResponse, StreamingHttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 
 from ragchange.config.loader import config
@@ -79,12 +80,20 @@ def _augment_query(query):
     return queries
 
 
-@require_POST  
+@csrf_exempt
+@require_POST
 def search_api(request):
     logger.info(f"Search API accessed with request: {request}")
     try:
-        query = request.POST.get('query', '').strip()
-        n_results = int(request.POST.get('number_results'))
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+            query = str(data.get('query', '')).strip()
+            n_results = data.get('n_results')
+        else:
+            query = request.POST.get('query', '').strip()
+            n_results = request.POST.get('number_results')
+
+        n_results = int(n_results)
         
         if not query or not n_results or n_results <= 0:
             return JsonResponse({'error': 'Requires query and n_results>0'}, status=400)
@@ -107,7 +116,8 @@ def search_api(request):
         logger.exception("Search API error")
         return JsonResponse({'error': str(e)}, status=500)
 
-@require_POST  
+@csrf_exempt
+@require_POST
 def chat_api(request):
     logger.info(f"Chat API accessed with request: {request}")
     try:
@@ -149,10 +159,16 @@ def chat_api(request):
 
         # return response
         docs_json = json.dumps(search_data)
+        if request.content_type == 'application/json':
+            return JsonResponse({
+                'query': query,
+                'response': result,
+                'documents': search_data,
+            })
+
         response_text = f"{result}<|DOCS_JSON|>{docs_json}"
         return HttpResponse(response_text, content_type='text/plain')
         
     except Exception as e:
         logger.exception(f"Chat API error: {e}")
         return JsonResponse({'error': str(e)}, status=500)
-
