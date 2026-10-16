@@ -48,7 +48,11 @@ import requests
 
 response = requests.post(
     "https://change.dh.unibe.ch/api/search/",
-    json={"query": "foobar", "n_results": 5},
+    json={
+        "query": "foobar",
+        "n_results": 5,
+        "query_augmentation": False,
+    },
     timeout=120,
 )
 response.raise_for_status()

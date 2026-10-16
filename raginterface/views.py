@@ -89,9 +89,21 @@ def search_api(request):
             data = json.loads(request.body)
             query = str(data.get('query', '')).strip()
             n_results = data.get('n_results')
+            query_augmentation = data.get('query_augmentation', False)
         else:
             query = request.POST.get('query', '').strip()
             n_results = request.POST.get('number_results')
+            # query augmentation is off in the search page currently
+            query_augmentation = request.POST.get('query_augmentation', 'false')
+
+        if not (
+            isinstance(query_augmentation, bool)
+            or (isinstance(query_augmentation, str) 
+                and query_augmentation.lower() in ('true', 'false')
+            )
+        ):
+            return JsonResponse({'error': 'query_augmentation must be a boolean'},  status=400)
+        query_augmentation = query_augmentation is True or query_augmentation.lower() == 'true'
 
         n_results = int(n_results)
         
@@ -99,7 +111,6 @@ def search_api(request):
             return JsonResponse({'error': 'Requires query and n_results>0'}, status=400)
         logger.info(f"Processing search query: '{query}'\n\tNumber of results requested: {n_results}")
         
-        query_augmentation = False #TODO: when to turn it on ?
         # Use the service to search documents
         queries = _augment_query(query) if query_augmentation else [query]
         retrieval_results = vector_retriever.retrieve(queries, n_results)
